@@ -3,5 +3,7 @@ __pycache__
 .vscode
 venv
 .python-version
+*.prof
+*/test.py
 Department-code.json
 SECRET.json
