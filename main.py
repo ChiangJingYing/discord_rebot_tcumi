@@ -1,12 +1,12 @@
 import requests
-
 import pandas as pd
 
 
 class PointGeter:
     def proccess(self, **kwargs):
         try:
-            ses = self.__login(number=kwargs['number'], password=kwargs['password'])
+            html_content = self.__login(
+                number=kwargs['number'], password=kwargs['password'])
         except requests.exceptions.HTTPError:
             self.result = "HttpError(login)"
         except requests.exceptions.ConnectionError:
@@ -14,7 +14,7 @@ class PointGeter:
         except ValueError:
             self.result = 'Username or password not correct'
         else:
-            self.result = self.__analyse(ses=ses)
+            self.result = self.__analyse(html_content=html_content)
 
     def __login(*args, **kwargs):
         ses = requests.Session()
@@ -29,18 +29,25 @@ class PointGeter:
             'tbPwd': kwargs['password'],
             "btnLogin": "登入"
         }
-        login_post = ses.post(url, data=data)
+        header = {
+            "Accept-Encoding": "gzip"
+        }
+        login_post = ses.post(url, data=data, headers=header)
+
         if login_post.status_code == 200 and login_post.url == 'https://ican.tcu.edu.tw/default.aspx':
-            return ses
+            response = ses.get('https://ican.tcu.edu.tw/course/course.aspx')
+            ses.get('https://ican.tcu.edu.tw/Logout.aspx')
+            return response
         elif login_post.url == 'https://ican.tcu.edu.tw/error/ErrorAccountPwd.aspx':
+            raise ValueError
+        elif login_post.url == 'https://ican.tcu.edu.tw/login.aspx':
             raise ValueError
         else:
             raise requests.exceptions.HTTPError
 
     def __analyse(*args, **kwargs):
-        ses = kwargs['ses']
-        response = ses.get('https://ican.tcu.edu.tw/course/course.aspx')
-        table = pd.read_html(response.text)
+        html_content = kwargs['html_content']
+        table = pd.read_html(html_content.text)
         title = table[0].columns.values
         table[1].columns = title
         table.remove(table[0])
@@ -52,15 +59,20 @@ class PointGeter:
             new_table = pd.concat([new_table, table[count]], join='outer')
             count += table[count].shape[0] + 1
 
-        class_required = new_table[
-            (~new_table['課程系組'].isin(['通識  1  A', '體育  1  A'])) & (new_table['必選修別'] == '必修 / Required') & (
-                new_table['成績'] >= 60)]['學分數'].sum()
-        class_elective = new_table[
-            (~new_table['課程系組'].isin(['通識  1  A', '體育  1  A'])) & (new_table['必選修別'] == '選修 / Elective') & (
-                new_table['成績'] >= 60)]['學分數'].sum()
-        general = new_table[(new_table['課程系組'].isin(['通識  1  A', '體育  1  A'])) & (new_table['成績'] >= 60)][
-            '學分數'].sum()
-        print(f'必修： {class_required}')
-        print(f'選修： {class_elective}')
-        print(f'通識： {general}')
-        return f'必修： {class_required}\n選修： {class_elective}\n通識： {general}'
+        general = new_table[new_table['課程系組'].isin(["通識  1  A"])]
+        new_table = pd.concat([new_table, general, general]
+                              ).drop_duplicates(keep=False)
+        PE = new_table[new_table['課程系組'].isin(['體育  1  A'])]
+        deparetment = pd.concat(
+            [new_table, PE, PE]).drop_duplicates(keep=False)
+
+        a, b, c, d, e = (
+            f"系必修： {deparetment[(deparetment['必選修別'] == '必修 / Required') & (deparetment['成績'] >= 60)]['學分數'].sum()}",
+            f"系選修： {deparetment[(deparetment['必選修別'] == '選修 / Elective') & (deparetment['成績'] >= 60)]['學分數'].sum()}",
+            f"通識必修： {general[(general['必選修別'] == '必修 / Required') & (general['成績'] >= 60)]['學分數'].sum()}",
+            f"通識選修： {general[(general['必選修別'] != '必修 / Required') & (general['成績'] >= 60)]['學分數'].sum()}",
+            f"體育： {PE[PE['成績'] >= 60]['學分數'].sum()}"
+        )
+
+        print(a, b, c, d, e)
+        return "\n".join([a, b, c, d, e])

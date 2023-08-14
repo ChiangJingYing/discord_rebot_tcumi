@@ -4,6 +4,6 @@ __pycache__
 venv
 .python-version
 *.prof
-*/test.py
+test.py
 Department-code.json
 SECRET.json
