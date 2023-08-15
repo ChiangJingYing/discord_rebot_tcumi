@@ -20,7 +20,7 @@ async def synccommands(ctx):
 
 @bot.hybrid_command()
 async def get_point(ctx, student_number: str, password: str):
-    await ctx.send("Searching...", delete_after=3.0,ephemeral=True)
+    await ctx.send("Searching...", delete_after=4.0,ephemeral=True)
     getter = PointGeter()
     getter.proccess(number=student_number, password=password)
     await ctx.send(f'{getter.result}', ephemeral=True)
