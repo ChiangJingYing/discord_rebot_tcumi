@@ -1,6 +1,8 @@
 import requests
 import pandas as pd
 
+from fake_useragent import UserAgent
+
 
 class PointGeter:
     def proccess(self, **kwargs):
@@ -30,7 +32,8 @@ class PointGeter:
             "btnLogin": "登入"
         }
         header = {
-            "Accept-Encoding": "gzip"
+            "Accept-Encoding": "gzip",
+            'user-agent': UserAgent().random
         }
         login_post = ses.post(url, data=data, headers=header)
 
