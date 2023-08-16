@@ -1,4 +1,4 @@
-import discord
+import discord, asyncio
 from discord.ext import commands
 from main import PointGeter
 
@@ -19,10 +19,10 @@ async def synccommands(ctx):
 
 
 @bot.hybrid_command()
-async def get_point(ctx, student_number: str, password: str):
-    await ctx.send("Searching...", delete_after=10.0,ephemeral=True)
+async def get_point(ctx: commands.Context, student_number: str, password: str):
+    await ctx.interaction.response.defer(ephemeral=True)
     getter = PointGeter()
     getter.proccess(number=student_number, password=password)
-    await ctx.send(f'{getter.result}', ephemeral=True)
+    await ctx.interaction.followup.send(f'{getter.result}', ephemeral=True)  
 
 bot.run(token=token)
