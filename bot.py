@@ -1,4 +1,4 @@
-import discord, asyncio
+import discord, os
 from discord.ext import commands
 from main import PointGeter
 
@@ -6,8 +6,7 @@ from main import PointGeter
 intents = discord.Intents.default()
 intents.message_content = True
 
-token = 'MTEzNzcxMzk3MDU4OTk5MTAzMw.G4odhw.J8GsU1b8ZSOkVLM0hZo0yGqi1-QSezZ1ZVFf_s'
-
+token = os.getenv('DISCORD_TEST_BOT_TOKEN', None)
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 
@@ -25,4 +24,7 @@ async def get_point(ctx: commands.Context, student_number: str, password: str):
     getter.proccess(number=student_number, password=password)
     await ctx.interaction.followup.send(f'{getter.result}', ephemeral=True)  
 
-bot.run(token=token)
+if token:
+    bot.run(token=token)
+else:
+    print("there is not token")
