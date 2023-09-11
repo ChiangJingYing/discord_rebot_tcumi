@@ -69,13 +69,14 @@ class PointGeter:
         deparetment = pd.concat(
             [new_table, PE, PE]).drop_duplicates(keep=False)
 
-        a, b, c, d, e = (
-            f"系必修： {deparetment[(deparetment['必選修別'] == '必修 / Required') & (deparetment['成績'] >= 60)]['學分數'].sum()}",
-            f"系選修： {deparetment[(deparetment['必選修別'] == '選修 / Elective') & (deparetment['成績'] >= 60)]['學分數'].sum()}",
-            f"通識必修： {general[(general['必選修別'] == '必修 / Required') & (general['成績'] >= 60)]['學分數'].sum()}",
-            f"通識選修： {general[(general['必選修別'] != '必修 / Required') & (general['成績'] >= 60)]['學分數'].sum()}",
-            f"體育： {PE[PE['成績'] >= 60]['學分數'].sum()}"
+        a, b, c, d, e, f = (
+            f"系必修： {(tmp1:=(deparetment[(deparetment['必選修別'] == '必修 / Required') & (deparetment['成績'] >= 60)]['學分數'].sum()))}/41",
+            f"系選修： {(tmp2:=(deparetment[(deparetment['必選修別'] == '選修 / Elective') & (deparetment['成績'] >= 60)]['學分數'].sum()))}/54",
+            f"系總學分: {tmp1+tmp2}/95",
+            f"通識必修： {general[(general['必選修別'] == '必修 / Required') & (general['成績'] >= 60)]['學分數'].sum()}/10",
+            f"通識選修： {general[(general['必選修別'] != '必修 / Required') & (general['成績'] >= 60)]['學分數'].sum()}/18",
+            f"體育： {PE[PE['成績'] >= 60]['學分數'].sum()}/3"
         )
 
-        print(a, b, c, d, e)
-        return "\n".join([a, b, c, d, e])
+        print(a, b, c, d, e, f)
+        return "\n".join([a, b, c, d, e, f])
