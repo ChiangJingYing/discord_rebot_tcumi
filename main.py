@@ -62,9 +62,16 @@ class PointGeter:
             new_table = pd.concat([new_table, table[count]], join='outer')
             count += table[count].shape[0] + 1
 
+        # 分離通識學分
         general = new_table[new_table['課程系組'].isin(["通識  1  A"])]
         new_table = pd.concat([new_table, general, general]
                               ).drop_duplicates(keep=False)
+        
+        # 修正 通識必選修別：通識->必修
+        general.loc[general['課程名稱'].str.contains(
+            r"生命教育.+|中文閱讀與書寫.+|慈濟人文暨服務教育.+|網頁視覺程式設計.+|基礎英文.+"), '必選修別'] = '必修 / Required'
+
+        # 分離體育學分
         PE = new_table[new_table['課程系組'].isin(['體育  1  A'])]
         deparetment = pd.concat(
             [new_table, PE, PE]).drop_duplicates(keep=False)
@@ -80,3 +87,6 @@ class PointGeter:
 
         print(a, b, c, d, e, f)
         return "\n".join([a, b, c, d, e, f])
+
+
+point = PointGeter().proccess(number='110316118', password='R125124015')
