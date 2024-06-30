@@ -69,7 +69,7 @@ class PointGeter:
 
         # 修改欄位資料型態
         new_table['學分數'] = new_table['學分數'].astype(int)
-        new_table.loc[pd.isna(new_table['成績'])] = 0
+        new_table.loc[pd.isna(new_table['成績']), '成績'] = 0
         new_table['成績'] = new_table['成績'].astype(int)
 
         # 分離通識學分
