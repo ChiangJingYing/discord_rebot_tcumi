@@ -84,20 +84,26 @@ class PointGeter:
 
         # 分離體育學分、系上學分
         PE = new_table[new_table['課程系組'].isin(['體育  1  A'])]
-        deparetment = pd.concat(
+        new_table = pd.concat(
             [new_table, PE, PE]).drop_duplicates(keep=False)
 
-        a, b, c, d, e, f = (
+        # 分離體育學分、系上學分
+        third_language = new_table[new_table['課程系組'].str.contains('外語')]
+        deparetment = pd.concat(
+            [new_table, third_language, third_language]).drop_duplicates(keep=False)
+
+        a, b, c, d, e, f, g = (
             f"系必修： {(tmp1:=(deparetment[(deparetment['必選修別'] == '必修') & (deparetment['成績'] >= 60)]['學分數'].sum()))}/41",
             f"系選修： {(tmp2:=(deparetment[(deparetment['必選修別'] == '選修') & (deparetment['成績'] >= 60)]['學分數'].sum()))}/54",
             f"系總學分: {tmp1+tmp2}/95",
             f"通識必修： {general[(general['必選修別'] == '必修') & (general['成績'] >= 60)]['學分數'].sum()}/10",
             f"通識選修： {general[(general['必選修別'] != '必修') & (general['成績'] >= 60)]['學分數'].sum()}/18",
-            f"體育： {PE[PE['成績'] >= 60]['學分數'].sum()}/3"
+            f"體育： {PE[PE['成績'] >= 60]['學分數'].sum()}/3",
+            f"外語： {third_language[third_language['成績'] >= 60]['學分數'].sum()}/2"
         )
 
-        print(a, b, c, d, e, f)
-        return "\n".join([a, b, c, d, e, f])
+        print(a, b, c, d, e, f, g)
+        return "\n".join([a, b, c, d, e, f, g])
 
 
 point = PointGeter().proccess(number='110316118', password='R125124015')
