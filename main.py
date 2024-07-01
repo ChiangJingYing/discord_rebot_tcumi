@@ -1,6 +1,7 @@
-import requests
-import pandas as pd
+from pathlib import Path
 
+import pandas as pd
+import requests
 from fake_useragent import UserAgent
 
 
@@ -64,6 +65,9 @@ class PointGeter:
             new_table = pd.concat([new_table, table[count]], join='outer')
             count += 1
 
+        # 刪除不必要欄位
+        new_table.drop(columns=['身分', '科目代碼'], inplace=True)
+
         # 修正抵免學分 分數
         new_table.loc[new_table['成績'] == '抵', '成績'] = 60
 
@@ -92,6 +96,10 @@ class PointGeter:
         deparetment = pd.concat(
             [new_table, third_language, third_language]).drop_duplicates(keep=False)
 
+        # 修正 普通生物比選修類別: 必修->選修
+        deparetment.loc[deparetment['課程名稱'].str.contains(
+            r"普通生物.*"), '必選修別'] = '選修'
+
         a, b, c, d, e, f, g = (
             f"系必修： {(tmp1:=(deparetment[(deparetment['必選修別'] == '必修') & (deparetment['成績'] >= 60)]['學分數'].sum()))}/41",
             f"系選修： {(tmp2:=(deparetment[(deparetment['必選修別'] == '選修') & (deparetment['成績'] >= 60)]['學分數'].sum()))}/54",
@@ -102,8 +110,16 @@ class PointGeter:
             f"外語： {third_language[third_language['成績'] >= 60]['學分數'].sum()}/2"
         )
 
+        file_path = Path('./').resolve()
+        with pd.ExcelWriter(file_path/'output.xlsx') as writer:
+            new_table.sort_values(by='必選修別').to_excel(writer, sheet_name='全部')
+            general.sort_values(by='必選修別').to_excel(writer, sheet_name='通識')
+            deparetment.sort_values(by='必選修別').to_excel(writer, sheet_name='系必選')
+            PE.sort_values(by='必選修別').to_excel(writer, sheet_name='體育')
+            third_language.sort_values(by='必選修別').to_excel(writer, sheet_name='外語')
+
         print(a, b, c, d, e, f, g)
-        return "\n".join([a, b, c, d, e, f, g])
+        return "\n".join([a, b, c, d, e, f, g]), file_path/'output.xlsx'
 
 
 point = PointGeter().proccess(number='110316118', password='R125124015')
