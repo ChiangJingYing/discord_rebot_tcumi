@@ -82,12 +82,12 @@ class PointGeter:
         general.loc[general['課程名稱'].str.contains(
             r"生命教育.*|中文閱讀與書寫.*|慈濟人文暨服務教育.*|網頁視覺程式設計.*|基礎英文.*"), '必選修別'] = '必修'
 
-        # 分離體育學分、系上學分
+        # 分離體育學分、其他學分
         PE = new_table[new_table['課程系組'].isin(['體育  1  A'])]
         new_table = pd.concat(
             [new_table, PE, PE]).drop_duplicates(keep=False)
 
-        # 分離體育學分、系上學分
+        # 分離外語學分、系上學分
         third_language = new_table[new_table['課程系組'].str.contains('外語')]
         deparetment = pd.concat(
             [new_table, third_language, third_language]).drop_duplicates(keep=False)
