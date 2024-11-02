@@ -77,7 +77,7 @@ class PointGeter:
         new_table['成績'] = new_table['成績'].astype(int)
 
         # 分離通識學分
-        general = new_table[(new_table['課程系組'] == "通識  1  A")
+        general = new_table[(new_table['課程系組'] == "通識-大學部  1  A")
                             | (new_table['課程系組'].isna())]
         new_table = pd.concat([new_table, general, general]
                               ).drop_duplicates(keep=False)
@@ -87,7 +87,7 @@ class PointGeter:
             r"生命教育.*|中文閱讀與書寫.*|慈濟人文暨服務教育.*|網頁視覺程式設計.*|基礎英文.*"), '必選修別'] = '必修'
 
         # 分離體育學分、其他學分
-        PE = new_table[new_table['課程系組'].isin(['體育  1  A'])]
+        PE = new_table[new_table['課程系組'].isin(['體育-大學部  1  A'])]
         new_table = pd.concat(
             [new_table, PE, PE]).drop_duplicates(keep=False)
 
