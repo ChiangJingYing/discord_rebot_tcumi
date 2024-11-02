@@ -1,5 +1,9 @@
+import asyncio
+
 import discord
 import os
+
+from async_timeout import timeout
 from discord.ext import commands
 
 from main import PointGeter
@@ -7,7 +11,7 @@ from main import PointGeter
 intents = discord.Intents.default()
 intents.message_content = True
 
-token = os.getenv('DISCORD_TEST_BOT_TOKEN', None)
+token = os.getenv('DISCORD_BOT_TOKEN', None)
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
@@ -39,19 +43,40 @@ async def point(interaction: discord.Interaction):
             min_length=1,
             max_length=30,
         )
+
         async def on_submit(self, interaction: discord.Interaction):
+            # Defer the response immediately to prevent timeout
+            await interaction.response.defer(ephemeral=True)
+
+            # Extract form data
             for component in interaction.data['components']:
                 component = component['components'][0]
                 if component['custom_id'] == 'student_id':
                     self.student_id = component['value']
                 elif component['custom_id'] == 'password':
                     self.password = component['value']
-            print(self.student_id, self.password)
-            getter = PointGeter()
-            getter.proccess(number=self.student_id, password=self.password)
-            await interaction.response.send_message(f'Thank you for your submission, {interaction.user.mention}!\n{getter.result[0]}',
-                                                    file=discord.File(fp=getter.result[1], filename="紀錄表.xlsx"), ephemeral=True)
-            getter.result[1].unlink()
+
+            try:
+                # Process the point getting operation
+                getter = PointGeter()
+                getter.proccess(number=self.student_id, password=self.password)
+
+                # Send the follow-up message with results
+                await interaction.followup.send(
+                    content=f'Thank you for your submission, {interaction.user.mention}!\n{getter.result[0]}',
+                    file=discord.File(fp=getter.result[1], filename="紀錄表.xlsx"),
+                    ephemeral=True
+                )
+
+                # Clean up the file after sending
+                getter.result[1].unlink()
+
+            except Exception as e:
+                # Handle any errors that might occur during processing
+                await interaction.followup.send(
+                    content=f"An error occurred: {str(e)}",
+                    ephemeral=True
+                )
 
     modal = PointModal()
     await interaction.response.send_modal(modal)
